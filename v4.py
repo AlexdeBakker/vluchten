@@ -8,8 +8,11 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 # Data inladen en opschonen
-df_airports = pd.read_csv(r"C:\Users\alexd\Downloads\vluchten\airports-extended-clean.csv", sep=';')
+uploaded_file = st.file_uploader("airports-extended-clean.csv", type="csv")
 
+if uploaded_file is not None:
+    df_airports = pd.read_csv(r"C:\Users\alexd\Downloads\vluchten\airports-extended-clean.csv", sep=';')
+    st.write(df_airports)
 # Converteer Latitude en Longitude kolommen naar correcte numerieke waarden
 df_airports['Latitude'] = df_airports['Latitude'].str.replace(',', '.').astype(float)
 df_airports['Longitude'] = df_airports['Longitude'].str.replace(',', '.').astype(float)
