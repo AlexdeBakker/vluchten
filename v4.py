@@ -8,11 +8,8 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 # Data inladen en opschonen
-uploaded_file = st.file_uploader("airports-extended-clean.csv", type="csv")
+df_airports = pd.read_csv('./vluchten/airports-extended-clean.csv', sep=';')
 
-if uploaded_file is not None:
-    df_airports = pd.read_csv(r"C:\Users\alexd\Downloads\vluchten\airports-extended-clean.csv", sep=';')
-    st.write(df_airports)
 # Converteer Latitude en Longitude kolommen naar correcte numerieke waarden
 df_airports['Latitude'] = df_airports['Latitude'].str.replace(',', '.').astype(float)
 df_airports['Longitude'] = df_airports['Longitude'].str.replace(',', '.').astype(float)
@@ -81,7 +78,7 @@ elif pagina == "Vlucht Route Weergave":
     st.title("Vlucht Route Weergave")
 
     # Data inladen
-    df1 = pd.read_csv(r"C:\Users\alexd\Downloads\vluchten\airports-extended-clean.csv", sep=';')
+    df1 = pd.read_csv('./vluchten/airports-extended-clean.csv', sep=';')
     df2 = pd.read_csv(r"C:\Users\alexd\Downloads\vluchten\schedule_airport.csv")
 
     # Dataset merge, op luchthaven/code
@@ -162,7 +159,7 @@ elif pagina == "Vertraging Voorspelling per Bestemming":
     st.title("Vertraging Voorspelling per Bestemming")
 
     # Data inladen
-    df1 = pd.read_csv(r"C:\Users\alexd\Downloads\vluchten\airports-extended-clean.csv", sep=';')
+    df1 = pd.read_csv('./vluchten/airports-extended-clean.csv', sep=';')
     df2 = pd.read_csv(r"C:\Users\alexd\Downloads\vluchten\schedule_airport.csv")
 
     # Kolomnaam veranderen 
