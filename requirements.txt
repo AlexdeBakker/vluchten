@@ -5,3 +5,4 @@ streamlit-folium
 matplotlib
 scikit-learn
 branca
+folium
