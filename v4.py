@@ -9,7 +9,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 # Data inladen en opschonen
 df_airports = pd.read_csv('./vluchten/airports-extended-clean.csv', sep=';')
-data_directory = './vluchten/'  # Adjust this if the subdirectory name is different
+data_directory = './'  # Adjust this if the subdirectory name is different
 
 
 
