@@ -170,44 +170,98 @@ elif pagina == "Vertraging Voorspelling per Bestemming":
     df1 = pd.read_csv('./vluchten/airports-extended-clean.csv', sep=';')
     df2 = pd.read_csv("./schedule_airport.csv")
 
-    # Kolomnaam veranderen 
-    df2 = df2.rename(columns={'STD': 'date', 'STA_STD_ltc': 'gepl_aank', 'ATA_ATD_ltc': 'werk_aank'})
-    
-    # Dataset merge, op luchthaven/code
+    #Kolomnaam veranderen 
+    df2 = df2.rename(columns={'STD' : 'date', 'STA_STD_ltc' : 'gepl_aank', 'ATA_ATD_ltc' : 'werk_aank'})
+#Dataset merge, op luchthaven/code
     df3 = df2.merge(df1[['ICAO', 'Name']], left_on='Org/Des', right_on='ICAO', how='left')
 
-    # Zet de datum- en tijdstempels om naar datetime-formaat
+
+# Zet de datum- en tijdstempels om naar datetime-formaat
     df3['gepl_aank'] = pd.to_datetime(df3['date'] + ' ' + df3['gepl_aank'], format='%d/%m/%Y %H:%M:%S')
     df3['werk_aank'] = pd.to_datetime(df3['date'] + ' ' + df3['werk_aank'], format='%d/%m/%Y %H:%M:%S')
 
-    # Bereken de vertraging (in minuten)
-    df3['vertraging'] = (df3['werk_aank'] - df3['gepl_aank']).dt.total_seconds() / 60
+# Bereken de vertraging (in minuten)
+    df3['vertraging'] = (df3['werk_aank'] - df3['gepl_aank']).dt.total_seconds() /60
 
-    # Definieer features en target
-    X = pd.get_dummies(df3['Name'], drop_first=True)  # One-hot encoding van bestemmingen
-    y = df3['vertraging']
+# Voeg kolommen toe voor maand en jaar
+    df3['date'] = pd.to_datetime(df3['date'], format='%d/%m/%Y')
+    df3['month'] = df3['date'].dt.month
+    df3['year'] = df3['date'].dt.year
+    df3['season'] = df3['month'].apply(lambda x: 'Lente' if x in [3, 4, 5] else
+                                   ('Zomer' if x in [6, 7, 8] else
+                                    ('Herfst' if x in [9, 10, 11] else 'Winter')))
 
-    # Splits de data in training en test sets
+# Dropdown menu voor jaar en seizoen
+    st.title('Vluchtvertraging Analyse')
+    selected_year = st.selectbox('Kies het jaar:', [2019, 2020, 'Beide jaren'])
+    selected_season = st.selectbox('Selecteer het seizoen:', ['Lente', 'Zomer', 'Herfst', 'Winter'])
+
+# Filter de data op basis van de gekozen periode
+    if selected_year == 'Beide jaren':
+        df_filtered = df3[df3['season'] == selected_season]
+    else:
+        df_filtered = df3[(df3['season'] == selected_season) & (df3['year'] == selected_year)]
+
+# Voorspellingsmodel op basis van gefilterde data
+    X = pd.get_dummies(df_filtered['Name'], drop_first=True)
+    y = df_filtered['vertraging']
+
+# Splits de data in training en test sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # Train het model
+# Train het model
     model = LinearRegression()
     model.fit(X_train, y_train)
 
-    # Selecteer de bestemming
-    bestemmingen = df3['Name'].unique()
+# Streamlit app voor voorspelling
+    st.header("Vertraging Voorspelling per Bestemming")
+    bestemmingen = df_filtered['Name'].unique()
     keuze = st.selectbox("Kies een bestemming:", bestemmingen)
 
-    # Voorspel vertraging voor de gekozen bestemming
+# Voorspel vertraging voor de gekozen bestemming
     if keuze:
-        # Maak een input vector voor de voorspelling
         input_data = pd.DataFrame(columns=X.columns)
-        input_data.loc[0] = 0  # Start met een rij van nullen
-        input_data[keuze] = 1  # Zet de gekozen bestemming op 1
-
-        # Voorspel de vertraging
+        input_data.loc[0] = 0
+        input_data[keuze] = 1
         voorspelling = model.predict(input_data)[0]
         st.write(f"Verwachte vertraging voor {keuze}: {voorspelling:.2f} minuten")
+
+# Gemiddelde vertraging per maand in plotly
+    avg_delay_per_month = df_filtered.groupby('month')['vertraging'].mean().round(1)
+    fig = px.bar(avg_delay_per_month, x=avg_delay_per_month.index, y=avg_delay_per_month.values,
+             labels={'x': 'Maand', 'y': 'Gemiddelde vertraging (minuten)'},
+             title=f'Gemiddelde vertraging per maand in {selected_year} ({selected_season})')
+    st.plotly_chart(fig)
+
+# Top 10 bestemmingen met meeste/minste vertraging
+    st.header("Top 10 Bestemmingen")
+    optie = st.selectbox("Toon bestemmingen met:", ["Meeste vertraging", "Minste vertraging"])
+
+    if optie == "Meeste vertraging":
+        top_10 = df_filtered.groupby('Name')['vertraging'].mean().nlargest(10).round(1).reset_index()
+    else:
+        top_10 = df_filtered.groupby('Name')['vertraging'].mean().nsmallest(10).round(1).reset_index()
+
+    top_10['vertraging'] = top_10['vertraging'].astype(str) + ' minuten'   
+    st.table(top_10)
+
+# Top 10 bestemmingen grafiek (meeste/minste vertraging)
+    st.header(f"Top 10 Bestemmingen - {optie}")
+    fig_top_10 = px.bar(top_10, x='Name', y='vertraging', labels={'vertraging': 'Vertraging (minuten)', 'Name': 'Bestemming'},
+                    title=f"Top 10 Bestemmingen met {optie.lower()} vertraging")
+    st.plotly_chart(fig_top_10)
+
+# Minimale en maximale vertraging in de gefilterde dataset
+    min_vertraging = df_filtered['vertraging'].min()
+    max_vertraging = df_filtered['vertraging'].max()
+
+# Resultaten afronden op 2 decimalen
+    min_vertraging = round(min_vertraging, 2)
+    max_vertraging = round(max_vertraging, 2)
+
+# Schrijf de resultaten naar de Streamlit app
+    st.write(f"De minimale vertraging is: {min_vertraging} minuten")
+    st.write(f"De maximale vertraging is: {max_vertraging} minuten")
 elif pagina == "Aantal Vliegtuigen per Maand":
     st.title('Aantal Vliegtuigen op de Luchthaven per Maand')
 
