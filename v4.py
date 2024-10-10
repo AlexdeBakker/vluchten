@@ -90,7 +90,7 @@ elif pagina == "Vlucht Route Weergave":
     # Vlucht data 
     vluchten = {}
     for i in range(1, 8):  # Example: if you want to load files 1 to 7
-     excel_file_path = ("./30Flight {i}.xlsx")
+     excel_file_path = ("./vluchten/30Flight {i}.xlsx")
     df_flight = pd.read_excel(excel_file_path)
 
     # Definieer de coördinaten voor de banen
