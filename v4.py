@@ -9,7 +9,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 # Data inladen en opschonen
 df_airports = pd.read_csv('./vluchten/airports-extended-clean.csv', sep=';')
-data_directory = './'  # Adjust this if the subdirectory name is different
+
 
 
 
@@ -82,7 +82,7 @@ elif pagina == "Vlucht Route Weergave":
 
     # Data inladen
     df1 = pd.read_csv('./vluchten/airports-extended-clean.csv', sep=';')
-    df2 = pd.read_csv(f"{data_directory}schedule_airport.csv")
+    df2 = pd.read_csv("./schedule_airport.csv")
 
     # Dataset merge, op luchthaven/code
     df3 = df2.merge(df1[['ICAO', 'Name']], left_on='Org/Des', right_on='ICAO', how='left')
@@ -90,7 +90,7 @@ elif pagina == "Vlucht Route Weergave":
     # Vlucht data 
     vluchten = {}
     for i in range(1, 8):  # Example: if you want to load files 1 to 7
-     excel_file_path = f"{data_directory}30Flight {i}.xlsx"
+     excel_file_path = ("./30Flight {i}.xlsx")
     df_flight = pd.read_excel(excel_file_path)
 
     # Definieer de coördinaten voor de banen
@@ -161,7 +161,7 @@ elif pagina == "Vertraging Voorspelling per Bestemming":
 
     # Data inladen
     df1 = pd.read_csv('./vluchten/airports-extended-clean.csv', sep=';')
-    df2 = pd.read_csv(f"{data_directory}schedule_airport.csv")
+    df2 = pd.read_csv("./schedule_airport.csv")
 
     # Kolomnaam veranderen 
     df2 = df2.rename(columns={'STD': 'date', 'STA_STD_ltc': 'gepl_aank', 'ATA_ATD_ltc': 'werk_aank'})
@@ -205,7 +205,7 @@ elif pagina == "Aantal Vliegtuigen per Maand":
     st.title('Aantal Vliegtuigen op de Luchthaven per Maand')
 
     # CSV-bestand inlezen
-    df = pd.read_csv(f"{data_directory}schedule_airport.csv")
+    df = pd.read_csv("./schedule_airport.csv")
 
     # Kolommen hernoemen
     df.rename(columns={
