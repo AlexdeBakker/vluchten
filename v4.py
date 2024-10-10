@@ -88,13 +88,13 @@ elif pagina == "Vlucht Route Weergave":
     df3 = df2.merge(df1[['ICAO', 'Name']], left_on='Org/Des', right_on='ICAO', how='left')
 
 # Vlucht data laden
-vluchten = {}
-for i in range(1, 8):
-    try:
+    vluchten = {}
+    for i in range(1, 8):
+        try:
         # Gebruik het juiste pad naar de '30Flight' bestanden
-        vluchten[f"Vlucht {i}"] = pd.read_excel(f"./vluchten/30Flight {i}.xlsx")
-    except Exception as e:
-        st.error(f"Error loading flight data for Vlucht {i}: {e}")
+           vluchten[f"Vlucht {i}"] = pd.read_excel(f"./vluchten/30Flight {i}.xlsx")
+        except Exception as e:
+           st.error(f"Error loading flight data for Vlucht {i}: {e}")
 
 
     # Definieer de coördinaten voor de banen
@@ -170,7 +170,7 @@ for i in range(1, 8):
         st.write(f"Vluchtduur: {flight_duration}")  # Voeg de vluchtduur toe
         folium_static(flight_map)
 
-    elif pagina == "Vertraging Voorspelling per Bestemming":
+elif pagina == "Vertraging Voorspelling per Bestemming":
     st.title("Vertraging Voorspelling per Bestemming")
 
     # Data inladen
@@ -215,15 +215,15 @@ for i in range(1, 8):
         # Voorspel de vertraging
         voorspelling = model.predict(input_data)[0]
         st.write(f"Verwachte vertraging voor {keuze}: {voorspelling:.2f} minuten")
-    elif pagina == "Aantal Vliegtuigen per Maand":
-        st.title('Aantal Vliegtuigen op de Luchthaven per Maand')
+elif pagina == "Aantal Vliegtuigen per Maand":
+    st.title('Aantal Vliegtuigen op de Luchthaven per Maand')
 
     # CSV-bestand inlezen
     # 
-        df = pd.read_csv("./schedule_airport.csv")
+    df = pd.read_csv("./schedule_airport.csv")
 
     # Kolommen hernoemen
-        df.rename(columns={
+    df.rename(columns={
         'STD': 'Datum',
         'FLT': 'Vlucht nummer',
         'STA_STD_ltc': 'Geplande aankomst',
@@ -237,30 +237,30 @@ for i in range(1, 8):
     }, inplace=True)
 
     # Controleer of de 'Datum' kolom ook tijd bevat
-        df['Datum'] = pd.to_datetime(df['Datum'], format='%d/%m/%Y', dayfirst=True)
+    df['Datum'] = pd.to_datetime(df['Datum'], format='%d/%m/%Y', dayfirst=True)
 
     # Voeg een kolom toe voor het jaar
-        df['Jaar'] = df['Datum'].dt.year
+    df['Jaar'] = df['Datum'].dt.year
 
     # Maak een dropdown menu voor het selecteren van het jaar
-        selected_year = st.selectbox('Selecteer een jaar:', options=[2019, 2020])
+    selected_year = st.selectbox('Selecteer een jaar:', options=[2019, 2020])
 
     # Filter de dataframe op basis van het geselecteerde jaar
-        filtered_df = df[df['Jaar'] == selected_year]
+    filtered_df = df[df['Jaar'] == selected_year]
 
     # Voeg een kolom toe voor de maand; hier stel ik de tijd in op 00:00:00
-        filtered_df['maand'] = filtered_df['Datum'].dt.floor('H')
+    filtered_df['maand'] = filtered_df['Datum'].dt.floor('H')
 
     # Tel het aantal vliegtuigen per maand
-        vliegtuigen_per_maand = filtered_df.groupby('maand').size().reset_index(name='Aantal Vliegtuigen')
+    vliegtuigen_per_maand = filtered_df.groupby('maand').size().reset_index(name='Aantal Vliegtuigen')
 
     # Maak een interactief lijndiagram met range slider
-        fig = px.line(vliegtuigen_per_maand, x='maand', y='Aantal Vliegtuigen',
+    fig = px.line(vliegtuigen_per_maand, x='maand', y='Aantal Vliegtuigen',
                   title=f'Aantal Vliegtuigen op de Luchthaven per maand ({selected_year})',
                   labels={'maand': 'Tijd ', 'Aantal Vliegtuigen': 'Aantal Vliegtuigen'})
 
     # Voeg range slider en selector toe
-        fig.update_layout(
+    fig.update_layout(
         xaxis=dict(
             rangeslider=dict(visible=True),  # Voeg de range slider toe
             type="date"  # Zorg ervoor dat de x-as als datumtype wordt behandeld
