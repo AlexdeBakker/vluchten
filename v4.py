@@ -92,7 +92,7 @@ elif pagina == "Vlucht Route Weergave":
     for i in range(1, 8):
         try:
         # Gebruik het juiste pad naar de '30Flight' bestanden
-           vluchten[f"Vlucht {i}"] = pd.read_excel(f"./vluchten/30Flight {i}.xlsx")
+           vluchten[f"{i} Vlucht"] = pd.read_excel(rf"./vluchten/30Flight {i}.xlsx")
         except Exception as e:
            st.error(f"Error loading flight data for Vlucht {i}: {e}")
 
