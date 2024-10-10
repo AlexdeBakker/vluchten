@@ -87,8 +87,6 @@ elif pagina == "Vlucht Route Weergave":
     # Dataset merge, op luchthaven/code
     df3 = df2.merge(df1[['ICAO', 'Name']], left_on='Org/Des', right_on='ICAO', how='left')
 
-
-
     vluchten = {}
 
     for i in range(1, 8):  # Aantal vluchten dat je verwacht
@@ -104,71 +102,65 @@ elif pagina == "Vlucht Route Weergave":
         selected_flight = st.selectbox("Selecteer een vlucht", list(vluchten.keys()))
         df = vluchten[selected_flight]
 
-    if df.empty:
-        st.error("Geen geldige gegevens beschikbaar voor de geselecteerde vlucht.")
-    else:
-        df = df.dropna(subset=['[3d Latitude]', '[3d Longitude]', '[3d Altitude M]', 'Time (secs)'])
-        # Hier kan je verder gaan met het verwerken van df
-
-
-    # Verwijder rijen met NaN-waarden in de benodigde kolommen
-    df = df.dropna(subset=['[3d Latitude]', '[3d Longitude]', '[3d Altitude M]', 'Time (secs)'])
-   # Definieer de coördinaten voor de banen
-    banen = {
-        "Polderbaan": (52.348250, 4.711250),
-        "Kaagbaan": (52.289852, 4.742564),
-        "Aalsmeerbaan": (52.296685, 4.778077),
-        "Oostbaan": (52.308029, 4.794181),
-        "Zwanenburgbaan": (52.316599, 4.738689),
-        "Buitenveldertbaan": (52.317653, 4.769317),
-    }
-
-    if df.empty:
-        st.error("Geen geldige gegevens beschikbaar voor de geselecteerde vlucht.")
-    else:
-        # Bereken de vluchtduur in een leesbaar formaat
-        max_time_secs = df['Time (secs)'].max()
-        flight_duration = f"{max_time_secs // 60} minuten en {max_time_secs % 60} seconden"
-
-        # Creëer de folium kaart
-        map_center = [df['[3d Latitude]'].mean(), df['[3d Longitude]'].mean()]
-        flight_map = folium.Map(location=map_center, zoom_start=6)
-
-        # Voeg markers toe voor de banen
-        for baan, coord in banen.items():
-            folium.Marker(location=coord, popup=baan, icon=folium.Icon(color='blue')).add_to(flight_map)
-
-        # Definieer de hoogtes en kleuren
-        altitude_bins = [-10, 1000, 3000, 7500, 12000]  # Definieer de hoogte-intervallen
-        altitude_colors = ['blue', 'green', 'orange', 'red', 'yellow']  # Kleuren voor elke klasse
-
-        # Voeg de route met verschillende kleuren toe
-        coords = list(zip(df['[3d Latitude]'], df['[3d Longitude]'], df['[3d Altitude M]']))
-
-        # Voeg de gekleurde lijn toe aan de kaart
-        for i in range(len(coords) - 1):
-            start = coords[i]
-            end = coords[i + 1]
+        # Check if df is empty after flight selection
+        if df.empty:
+            st.error("Geen geldige gegevens beschikbaar voor de geselecteerde vlucht.")
+        else:
+            df = df.dropna(subset=['[3d Latitude]', '[3d Longitude]', '[3d Altitude M]', 'Time (secs)'])
+            # Hier kan je verder gaan met het verwerken van df
             
-            # Bepaal de kleur op basis van de hoogte
-            for j in range(len(altitude_bins) - 1):
-                if altitude_bins[j] < start[2] <= altitude_bins[j + 1]:
-                    color = altitude_colors[j]
-                    break
+            # Definieer de coördinaten voor de banen
+            banen = {
+                "Polderbaan": (52.348250, 4.711250),
+                "Kaagbaan": (52.289852, 4.742564),
+                "Aalsmeerbaan": (52.296685, 4.778077),
+                "Oostbaan": (52.308029, 4.794181),
+                "Zwanenburgbaan": (52.316599, 4.738689),
+                "Buitenveldertbaan": (52.317653, 4.769317),
+            }
 
-            # Voeg alleen toe als de coördinaten geldig zijn
-            if pd.notna(start[0]) and pd.notna(start[1]) and pd.notna(end[0]) and pd.notna(end[1]):
-                folium.PolyLine(locations=[[start[0], start[1]], [end[0], end[1]]], color=color, weight=5).add_to(flight_map)
+            # Bereken de vluchtduur in een leesbaar formaat
+            max_time_secs = df['Time (secs)'].max()
+            flight_duration = f"{max_time_secs // 60} minuten en {max_time_secs % 60} seconden"
 
-        # Voeg een legenda toe
-        colormap = branca.colormap.LinearColormap(colors=altitude_colors, vmin=min(altitude_bins), vmax=max(altitude_bins))
-        colormap.caption = 'Altitude (M)'
-        colormap.add_to(flight_map)
+            # Creëer de folium kaart
+            map_center = [df['[3d Latitude]'].mean(), df['[3d Longitude]'].mean()]
+            flight_map = folium.Map(location=map_center, zoom_start=6)
 
-        # Render de kaart in Streamlit met vluchtduur
-        st.write(f"Vluchtduur: {flight_duration}")  # Voeg de vluchtduur toe
-        st_folium(m, returned_objects=[])
+            # Voeg markers toe voor de banen
+            for baan, coord in banen.items():
+                folium.Marker(location=coord, popup=baan, icon=folium.Icon(color='blue')).add_to(flight_map)
 
+            # Definieer de hoogtes en kleuren
+            altitude_bins = [-10, 1000, 3000, 7500, 12000]  # Definieer de hoogte-intervallen
+            altitude_colors = ['blue', 'green', 'orange', 'red', 'yellow']  # Kleuren voor elke klasse
+
+            # Voeg de route met verschillende kleuren toe
+            coords = list(zip(df['[3d Latitude]'], df['[3d Longitude]'], df['[3d Altitude M]']))
+
+            # Voeg de gekleurde lijn toe aan de kaart
+            for i in range(len(coords) - 1):
+                start = coords[i]
+                end = coords[i + 1]
+                
+                # Bepaal de kleur op basis van de hoogte
+                for j in range(len(altitude_bins) - 1):
+                    if altitude_bins[j] < start[2] <= altitude_bins[j + 1]:
+                        color = altitude_colors[j]
+                        break
+
+                # Voeg alleen toe als de coördinaten geldig zijn
+                if pd.notna(start[0]) and pd.notna(start[1]) and pd.notna(end[0]) and pd.notna(end[1]):
+                    folium.PolyLine(locations=[[start[0], start[1]], [end[0], end[1]]], color=color, weight=5).add_to(flight_map)
+
+            # Voeg een legenda toe
+            colormap = branca.colormap.LinearColormap(colors=altitude_colors, vmin=min(altitude_bins), vmax=max(altitude_bins))
+            colormap.caption = 'Altitude (M)'
+            colormap.add_to(flight_map)
+
+            # Render de kaart in Streamlit met vluchtduur
+            st.write(f"Vluchtduur: {flight_duration}")  # Voeg de vluchtduur toe
+            folium_static(flight_map)  # Render the flight_map instead of m
 elif pagina == "Vertraging Voorspelling per Bestemming":
     st.title("Vertraging Voorspelling per Bestemming")
 
