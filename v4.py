@@ -87,17 +87,33 @@ elif pagina == "Vlucht Route Weergave":
     # Dataset merge, op luchthaven/code
     df3 = df2.merge(df1[['ICAO', 'Name']], left_on='Org/Des', right_on='ICAO', how='left')
 
-# Vlucht data laden
+
+
     vluchten = {}
-    for i in range(1, 8):
+
+    for i in range(1, 8):  # Aantal vluchten dat je verwacht
         try:
-        # Gebruik het juiste pad naar de '30Flight' bestanden
-           vluchten[f"{i} Vlucht"] = pd.read_excel(rf"./vluchten/30Flight {i}.xlsx")
+            vluchten[f"Vlucht {i}"] = pd.read_excel(f"./vluchten/30Flight {i}.xlsx")
+            st.write(vluchten[f"Vlucht {i}"].head())
         except Exception as e:
-           st.error(f"Error loading flight data for Vlucht {i}: {e}")
+            st.error(f"Error loading flight data for Vlucht {i}: {e}")
+
+    if not vluchten:
+        st.error("Er zijn geen vluchten om te selecteren.")
+    else:
+        selected_flight = st.selectbox("Selecteer een vlucht", list(vluchten.keys()))
+        df = vluchten[selected_flight]
+
+    if df.empty:
+        st.error("Geen geldige gegevens beschikbaar voor de geselecteerde vlucht.")
+    else:
+        df = df.dropna(subset=['[3d Latitude]', '[3d Longitude]', '[3d Altitude M]', 'Time (secs)'])
+        # Hier kan je verder gaan met het verwerken van df
 
 
-    # Definieer de coördinaten voor de banen
+    # Verwijder rijen met NaN-waarden in de benodigde kolommen
+    df = df.dropna(subset=['[3d Latitude]', '[3d Longitude]', '[3d Altitude M]', 'Time (secs)'])
+   # Definieer de coördinaten voor de banen
     banen = {
         "Polderbaan": (52.348250, 4.711250),
         "Kaagbaan": (52.289852, 4.742564),
@@ -106,23 +122,6 @@ elif pagina == "Vlucht Route Weergave":
         "Zwanenburgbaan": (52.316599, 4.738689),
         "Buitenveldertbaan": (52.317653, 4.769317),
     }
-
-    # Dropdown menu voor vlucht selectie
-    if vluchten:
-        selected_vlucht = st.selectbox("Kies een vlucht:", list(vluchten.keys()))
-
-        # Check of de geselecteerde vlucht in de dictionary zit
-        if selected_vlucht in vluchten:
-            df = vluchten[selected_vlucht]
-            st.write(f"Gegevens voor {selected_vlucht}:")
-            st.dataframe(df)  # Toon de dataframe van de geselecteerde vlucht
-        else:
-            st.error(f"De geselecteerde vlucht '{selected_vlucht}' bestaat niet in de geladen data.")
-    else:
-        st.error("Er zijn geen vluchten om te selecteren.")
-
-    # Verwijder rijen met NaN-waarden in de benodigde kolommen
-    df = df.dropna(subset=['[3d Latitude]', '[3d Longitude]', '[3d Altitude M]', 'Time (secs)'])
 
     if df.empty:
         st.error("Geen geldige gegevens beschikbaar voor de geselecteerde vlucht.")
@@ -168,7 +167,7 @@ elif pagina == "Vlucht Route Weergave":
 
         # Render de kaart in Streamlit met vluchtduur
         st.write(f"Vluchtduur: {flight_duration}")  # Voeg de vluchtduur toe
-        folium_static(flight_map)
+        st_folium(m, returned_objects=[])
 
 elif pagina == "Vertraging Voorspelling per Bestemming":
     st.title("Vertraging Voorspelling per Bestemming")
