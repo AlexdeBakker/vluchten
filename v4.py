@@ -88,10 +88,13 @@ elif pagina == "Vlucht Route Weergave":
     df3 = df2.merge(df1[['ICAO', 'Name']], left_on='Org/Des', right_on='ICAO', how='left')
 
     # Vlucht data 
+    # Vlucht data 
     vluchten = {}
-    for i in range(1, 8):  # Example: if you want to load files 1 to 7
-     excel_file_path = ("./vluchten/30Flight {i}.xlsx")
-    df_flight = pd.read_excel(excel_file_path)
+    for i in range(1, 8):
+        try:
+            vluchten[f"Vlucht {i}"] = pd.read_excel(rf"./vluchten/30Flight {i}.xlsx")
+        except Exception as e:
+            st.error(f"Error loading flight data for Vlucht {i}: {e}")
 
     # Definieer de coördinaten voor de banen
     banen = {
