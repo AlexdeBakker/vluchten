@@ -94,7 +94,7 @@ elif pagina == "Vlucht Route Weergave":
     for i in range(1, 8):  # Aantal vluchten dat je verwacht
         try:
             vluchten[f"Vlucht {i}"] = pd.read_excel(f"./vluchten/30Flight {i}.xlsx")
-            st.write(vluchten[f"Vlucht {i}"].head())
+            
         except Exception as e:
             st.error(f"Error loading flight data for Vlucht {i}: {e}")
 
