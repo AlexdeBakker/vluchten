@@ -87,18 +87,23 @@ elif pagina == "Vlucht Route Weergave":
     # Dataset merge, op luchthaven/code
     df3 = df2.merge(df1[['ICAO', 'Name']], left_on='Org/Des', right_on='ICAO', how='left')
 
-    # Vlucht data 
-    # Vlucht data 
     vluchten = {}
     for i in range(1, 8):
         try:
-            vluchten[f"Vlucht {i}"] = pd.read_excel(rf"./vluchten/30Flight {i}.xlsx")
+            vluchten[f"Vlucht {i}"] = pd.read_excel(rf".\vluchten\30Flight {i}.xlsx")
+        except FileNotFoundError as e:
+            st.error(f"Error: Het vluchtbestand voor Vlucht {i} kon niet worden gevonden: {e}")
         except Exception as e:
             st.error(f"Error loading flight data for Vlucht {i}: {e}")
 
+    # Controleer of er vluchten zijn ingeladen
+    if not vluchten:
+        st.error("Geen vluchten beschikbaar. Controleer of de bestanden correct zijn ingeladen.")
+        st.stop()
+
     # Definieer de coördinaten voor de banen
     banen = {
-        "Polderbaan": (52.348250, 4.711250),  
+        "Polderbaan": (52.348250, 4.711250),
         "Kaagbaan": (52.289852, 4.742564),
         "Aalsmeerbaan": (52.296685, 4.778077),
         "Oostbaan": (52.308029, 4.794181),
@@ -107,8 +112,18 @@ elif pagina == "Vlucht Route Weergave":
     }
 
     # Dropdown menu voor vlucht selectie
-    selected_vlucht = st.selectbox("Kies een vlucht:", list(vluchten.keys()))
-    df = vluchten[selected_vlucht]
+    if vluchten:
+        selected_vlucht = st.selectbox("Kies een vlucht:", list(vluchten.keys()))
+
+        # Check of de geselecteerde vlucht in de dictionary zit
+        if selected_vlucht in vluchten:
+            df = vluchten[selected_vlucht]
+            st.write(f"Gegevens voor {selected_vlucht}:")
+            st.dataframe(df)  # Toon de dataframe van de geselecteerde vlucht
+        else:
+            st.error(f"De geselecteerde vlucht '{selected_vlucht}' bestaat niet in de geladen data.")
+    else:
+        st.error("Er zijn geen vluchten om te selecteren.")
 
     # Verwijder rijen met NaN-waarden in de benodigde kolommen
     df = df.dropna(subset=['[3d Latitude]', '[3d Longitude]', '[3d Altitude M]', 'Time (secs)'])
